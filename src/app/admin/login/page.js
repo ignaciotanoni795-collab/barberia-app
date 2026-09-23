@@ -5,8 +5,11 @@ export default async function LoginPage({ searchParams }) {
   const error = params?.error;
 
   return (
-    <main className="min-h-screen bg-[#1C1917] text-[#F5F1EA] flex items-center justify-center px-6">
-      <form action={login} className="w-full max-w-sm space-y-4">
+    <main
+      className="min-h-screen bg-[#1C1917] text-[#F5F1EA] flex items-center justify-center px-6 bg-cover bg-center"
+      style={{ backgroundImage: "linear-gradient(rgba(28,25,23,0.75), rgba(28,25,23,0.85)), url('/login-bg.webp')" }}
+    >
+      <form action={login} className="w-full max-w-sm space-y-4 bg-[#1C1917]/70 border border-[#3A3530] rounded-lg px-6 py-8 backdrop-blur-sm">
         <div className="mb-4">
           <h1 className="text-3xl font-serif mb-1">Barbería</h1>
           <p className="text-[#C9A227]">Panel del dueño</p>
@@ -15,14 +18,14 @@ export default async function LoginPage({ searchParams }) {
           name="usuario"
           placeholder="Usuario"
           autoComplete="username"
-          className="w-full bg-transparent border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
+          className="w-full bg-[#1C1917]/60 border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
         />
         <input
           name="password"
           type="password"
           placeholder="Contraseña"
           autoComplete="current-password"
-          className="w-full bg-transparent border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
+          className="w-full bg-[#1C1917]/60 border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
         />
         {error && <p className="text-red-400 text-sm">Usuario o contraseña incorrectos.</p>}
         <button
