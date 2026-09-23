@@ -11,7 +11,7 @@ export default async function LoginPage({ searchParams }) {
     >
       <form action={login} className="w-full max-w-sm space-y-4 bg-[#1C1917]/70 border border-[#3A3530] rounded-lg px-6 py-8 backdrop-blur-sm">
         <div className="mb-4">
-          <h1 className="text-3xl font-serif mb-1">Barbería</h1>
+          <h1 className="text-3xl font-serif mb-1">Otto Barbería</h1>
           <p className="text-[#FFFFFF]">Panel del dueño</p>
         </div>
         <input
