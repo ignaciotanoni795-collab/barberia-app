@@ -40,7 +40,12 @@ export default function BookingForm({ servicios }) {
         }),
       });
 
-      if (!res.ok) throw new Error('No se pudo guardar el turno');
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setMensaje({ tipo: 'error', texto: data.error || 'Hubo un problema al reservar. Probá de nuevo.' });
+        return;
+      }
 
       setMensaje({ tipo: 'ok', texto: '¡Turno reservado! Te esperamos.' });
       setNombre('');
