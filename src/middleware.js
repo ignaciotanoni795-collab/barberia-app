@@ -1,21 +1,23 @@
 import { NextResponse } from 'next/server';
+import { sessionToken } from '@/lib/auth';
 
-export function middleware(request) {
-  const auth = request.headers.get('authorization');
-  const user = process.env.ADMIN_USER;
-  const pass = process.env.ADMIN_PASSWORD;
+export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+  const cookie = request.cookies.get('admin_session')?.value;
+  const authenticated = cookie === (await sessionToken());
 
-  if (auth?.startsWith('Basic ')) {
-    const [u, p] = atob(auth.slice(6)).split(':');
-    if (u === user && p === pass) {
-      return NextResponse.next();
+  if (pathname === '/admin/login') {
+    if (authenticated) {
+      return NextResponse.redirect(new URL('/admin', request.url));
     }
+    return NextResponse.next();
   }
 
-  return new NextResponse('Autenticación requerida', {
-    status: 401,
-    headers: { 'WWW-Authenticate': 'Basic realm="Admin"' },
-  });
+  if (!authenticated) {
+    return NextResponse.redirect(new URL('/admin/login', request.url));
+  }
+
+  return NextResponse.next();
 }
 
 export const config = {

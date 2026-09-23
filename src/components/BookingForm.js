@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 
 export default function BookingForm({ servicios }) {
   const [nombre, setNombre] = useState('');
@@ -10,12 +10,6 @@ export default function BookingForm({ servicios }) {
   const [seleccionados, setSeleccionados] = useState([]);
   const [enviando, setEnviando] = useState(false);
   const [mensaje, setMensaje] = useState(null);
-
-  const total = useMemo(() => {
-    return servicios
-      .filter((s) => seleccionados.includes(s.id))
-      .reduce((sum, s) => sum + Number(s.precio), 0);
-  }, [seleccionados, servicios]);
 
   function toggleServicio(id) {
     setSeleccionados((prev) =>
@@ -113,19 +107,9 @@ export default function BookingForm({ servicios }) {
                   {s.nombre} <span className="text-[#8A8378] text-sm">({s.duracion_minutos} min)</span>
                 </span>
               </span>
-              <span className="text-[#C9A227]">
-                {Number(s.precio).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })}
-              </span>
             </label>
           ))}
         </div>
-      </div>
-
-      <div className="flex items-center justify-between border-t border-[#3A3530] pt-4">
-        <span className="text-[#8A8378]">Total</span>
-        <span className="text-2xl">
-          {total.toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })}
-        </span>
       </div>
 
       {mensaje && (

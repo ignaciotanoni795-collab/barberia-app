@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS cierres (
+  fecha DATE PRIMARY KEY,
+  total NUMERIC NOT NULL,
+  cantidad_turnos INTEGER NOT NULL,
+  creado_en TIMESTAMP NOT NULL DEFAULT now()
+);

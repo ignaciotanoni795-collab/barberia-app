@@ -4,7 +4,7 @@ import BookingForm from '@/components/BookingForm';
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const { rows: servicios } = await sql`SELECT id, nombre, precio, duracion_minutos FROM servicios ORDER BY id`;
+  const { rows: servicios } = await sql`SELECT id, nombre, duracion_minutos FROM servicios ORDER BY id`;
 
   return (
     <main className="min-h-screen bg-[#1C1917] text-[#F5F1EA]">
