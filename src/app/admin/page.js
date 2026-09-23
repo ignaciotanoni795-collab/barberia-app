@@ -1,6 +1,13 @@
 import { sql } from '@/lib/db';
+import { cancelarTurno, completarTurno, reabrirTurno } from './actions';
 
 export const dynamic = 'force-dynamic';
+
+const ESTADO_COLOR = {
+  pendiente: 'text-[#C9A227]',
+  completado: 'text-green-400',
+  cancelado: 'text-red-400',
+};
 
 export default async function Admin() {
   const { rows: turnos } = await sql`
@@ -45,10 +52,34 @@ export default async function Admin() {
                   {' · '}
                   {t.telefono_cliente}
                   {' · '}
-                  <span className="capitalize">{t.estado}</span>
+                  <span className={`capitalize ${ESTADO_COLOR[t.estado] ?? ''}`}>{t.estado}</span>
                 </div>
                 <div className="text-sm mt-2">
                   {t.servicios.map((s) => s.nombre).join(', ')}
+                </div>
+
+                <div className="flex gap-2 mt-3">
+                  {t.estado === 'pendiente' && (
+                    <>
+                      <form action={completarTurno.bind(null, t.id)}>
+                        <button className="text-sm border border-green-400 text-green-400 rounded-md px-3 py-1 hover:bg-green-400/10">
+                          Marcar completado
+                        </button>
+                      </form>
+                      <form action={cancelarTurno.bind(null, t.id)}>
+                        <button className="text-sm border border-red-400 text-red-400 rounded-md px-3 py-1 hover:bg-red-400/10">
+                          Cancelar
+                        </button>
+                      </form>
+                    </>
+                  )}
+                  {t.estado !== 'pendiente' && (
+                    <form action={reabrirTurno.bind(null, t.id)}>
+                      <button className="text-sm border border-[#3A3530] text-[#8A8378] rounded-md px-3 py-1 hover:bg-white/5">
+                        Reabrir
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             ))}
