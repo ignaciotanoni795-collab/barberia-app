@@ -10,7 +10,7 @@ export default async function Home() {
     <main className="min-h-screen bg-[#1C1917] text-[#F5F1EA]">
       <div className="max-w-xl mx-auto px-6 py-12">
         <h1 className="text-3xl font-serif mb-1">Barbería</h1>
-        <p className="text-[#C9A227] mb-8">Reservá tu turno</p>
+        <p className="text-[#FFFFFF] mb-8">Reservá tu turno</p>
         <BookingForm servicios={servicios} />
       </div>
     </main>

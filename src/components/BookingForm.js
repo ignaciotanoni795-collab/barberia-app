@@ -63,27 +63,27 @@ export default function BookingForm({ servicios }) {
           placeholder="Nombre y apellido"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
-          className="w-full bg-transparent border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
+          className="w-full bg-transparent border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#FFFFFF]"
         />
         <input
           type="tel"
           placeholder="Teléfono"
           value={telefono}
           onChange={(e) => setTelefono(e.target.value)}
-          className="w-full bg-transparent border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
+          className="w-full bg-transparent border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#FFFFFF]"
         />
         <div className="flex gap-3">
           <input
             type="date"
             value={fecha}
             onChange={(e) => setFecha(e.target.value)}
-            className="w-1/2 bg-transparent border border-[#3A3530] rounded-md px-4 py-3 focus:outline-none focus:border-[#C9A227]"
+            className="w-1/2 bg-transparent border border-[#3A3530] rounded-md px-4 py-3 focus:outline-none focus:border-[#FFFFFF]"
           />
           <input
             type="time"
             value={hora}
             onChange={(e) => setHora(e.target.value)}
-            className="w-1/2 bg-transparent border border-[#3A3530] rounded-md px-4 py-3 focus:outline-none focus:border-[#C9A227]"
+            className="w-1/2 bg-transparent border border-[#3A3530] rounded-md px-4 py-3 focus:outline-none focus:border-[#FFFFFF]"
           />
         </div>
       </div>
@@ -101,7 +101,7 @@ export default function BookingForm({ servicios }) {
                   type="checkbox"
                   checked={seleccionados.includes(s.id)}
                   onChange={() => toggleServicio(s.id)}
-                  className="accent-[#C9A227] w-4 h-4"
+                  className="accent-[#FFFFFF] w-4 h-4"
                 />
                 <span>
                   {s.nombre} <span className="text-[#8A8378] text-sm">({s.duracion_minutos} min)</span>
@@ -121,7 +121,7 @@ export default function BookingForm({ servicios }) {
       <button
         type="submit"
         disabled={enviando}
-        className="w-full bg-[#C9A227] text-[#1C1917] font-medium rounded-md py-3 disabled:opacity-50"
+        className="w-full bg-[#FFFFFF] text-[#1C1917] font-medium rounded-md py-3 disabled:opacity-50"
       >
         {enviando ? 'Reservando...' : 'Reservar turno'}
       </button>

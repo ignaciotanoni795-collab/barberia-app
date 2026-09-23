@@ -5,7 +5,7 @@ import { cancelarTurno, completarTurno, reabrirTurno, cerrarDia } from '../../ac
 export const dynamic = 'force-dynamic';
 
 const ESTADO_COLOR = {
-  pendiente: 'text-[#C9A227]',
+  pendiente: 'text-[#FFFFFF]',
   completado: 'text-green-400',
   cancelado: 'text-red-400',
 };
@@ -61,7 +61,7 @@ export default async function DiaPage({ params }) {
         <AdminNav current="dashboard" />
         <a href="/admin" className="text-sm text-[#8A8378] hover:text-[#F5F1EA]">← Volver al dashboard</a>
         <h1 className="text-3xl font-serif mt-2 mb-1 capitalize">{fechaFmt}</h1>
-        <p className="text-[#C9A227] mb-8">
+        <p className="text-[#FFFFFF] mb-8">
           {turnos.length} turno{turnos.length !== 1 ? 's' : ''}
         </p>
 
@@ -73,7 +73,7 @@ export default async function DiaPage({ params }) {
               <p className="text-xs text-[#8A8378] mt-1">{completados.length} turno(s) completado(s)</p>
             </div>
             <form action={cerrarDia.bind(null, fecha)}>
-              <button className="text-sm border border-[#C9A227] text-[#C9A227] rounded-md px-4 py-2 hover:bg-[#C9A227]/10 whitespace-nowrap">
+              <button className="text-sm border border-[#FFFFFF] text-[#FFFFFF] rounded-md px-4 py-2 hover:bg-[#FFFFFF]/10 whitespace-nowrap">
                 {cierre ? 'Actualizar cierre' : 'Cerrar día'}
               </button>
             </form>
@@ -93,7 +93,7 @@ export default async function DiaPage({ params }) {
               <div key={t.id} className="border border-[#3A3530] rounded-md px-4 py-3">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{t.hora} · {t.nombre_cliente}</span>
-                  <span className="text-[#C9A227]">{money(t.total)}</span>
+                  <span className="text-[#FFFFFF]">{money(t.total)}</span>
                 </div>
                 <div className="text-sm text-[#8A8378] mt-1">
                   {t.telefono_cliente}

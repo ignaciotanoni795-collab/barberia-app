@@ -97,7 +97,7 @@ export default async function AdminDashboard({ searchParams }) {
       <div className="max-w-3xl mx-auto px-6 py-12">
         <AdminNav current="dashboard" />
         <h1 className="text-3xl font-serif mb-1">Dashboard</h1>
-        <p className="text-[#C9A227] mb-8">Panel del dueño</p>
+        <p className="text-[#FFFFFF] mb-8">Panel del dueño</p>
 
         <div className="grid grid-cols-2 gap-3 mb-10">
           <div className="border border-[#3A3530] rounded-md px-4 py-3">
@@ -133,14 +133,14 @@ export default async function AdminDashboard({ searchParams }) {
                   <a
                     key={fecha}
                     href={`/admin/dia/${fecha}`}
-                    className={`border rounded-md px-1 py-2 text-center hover:border-[#C9A227] ${
-                      esHoy ? 'border-[#C9A227]' : 'border-[#3A3530]'
+                    className={`border rounded-md px-1 py-2 text-center hover:border-[#FFFFFF] ${
+                      esHoy ? 'border-[#FFFFFF]' : 'border-[#3A3530]'
                     }`}
                   >
                     <p className="text-sm">{Number(fecha.slice(8, 10))}</p>
                     {info && (
                       <>
-                        <p className="text-[10px] text-[#C9A227] mt-1">{info.turnos}</p>
+                        <p className="text-[10px] text-[#FFFFFF] mt-1">{info.turnos}</p>
                         <p className="text-[9px] text-[#8A8378] truncate">{money(info.total)}</p>
                       </>
                     )}
@@ -160,7 +160,7 @@ export default async function AdminDashboard({ searchParams }) {
               <div key={d.dow} className="flex items-center justify-between border border-[#3A3530] rounded-md px-4 py-2">
                 <span>{DIAS[d.dow - 1]}</span>
                 <span className="text-sm text-[#8A8378]">{d.turnos} turno(s)</span>
-                <span className="text-[#C9A227]">{money(d.total)}</span>
+                <span className="text-[#FFFFFF]">{money(d.total)}</span>
               </div>
             ))}
           </div>

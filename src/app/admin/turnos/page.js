@@ -5,7 +5,7 @@ import { cancelarTurno, completarTurno, reabrirTurno } from '../actions';
 export const dynamic = 'force-dynamic';
 
 const ESTADO_COLOR = {
-  pendiente: 'text-[#C9A227]',
+  pendiente: 'text-[#FFFFFF]',
   completado: 'text-green-400',
   cancelado: 'text-red-400',
 };
@@ -35,7 +35,7 @@ export default async function TurnosPage() {
       <div className="max-w-3xl mx-auto px-6 py-12">
         <AdminNav current="turnos" />
         <h1 className="text-3xl font-serif mb-1">Turnos</h1>
-        <p className="text-[#C9A227] mb-8">Todos los turnos reservados</p>
+        <p className="text-[#FFFFFF] mb-8">Todos los turnos reservados</p>
 
         {turnos.length === 0 ? (
           <p className="text-[#8A8378]">Todavía no hay turnos reservados.</p>
@@ -45,7 +45,7 @@ export default async function TurnosPage() {
               <div key={t.id} className="border border-[#3A3530] rounded-md px-4 py-3">
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{t.nombre_cliente}</span>
-                  <span className="text-[#C9A227]">
+                  <span className="text-[#FFFFFF]">
                     {Number(t.total).toLocaleString('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 })}
                   </span>
                 </div>

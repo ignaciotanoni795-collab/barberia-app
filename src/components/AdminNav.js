@@ -2,7 +2,7 @@ import { logout } from '@/app/admin/actions';
 
 export default function AdminNav({ current }) {
   const linkClass = (key) =>
-    `text-sm ${current === key ? 'text-[#C9A227]' : 'text-[#8A8378] hover:text-[#F5F1EA]'}`;
+    `text-sm ${current === key ? 'text-[#FFFFFF]' : 'text-[#8A8378] hover:text-[#F5F1EA]'}`;
 
   return (
     <div className="flex items-center justify-between mb-8">

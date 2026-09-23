@@ -12,25 +12,25 @@ export default async function LoginPage({ searchParams }) {
       <form action={login} className="w-full max-w-sm space-y-4 bg-[#1C1917]/70 border border-[#3A3530] rounded-lg px-6 py-8 backdrop-blur-sm">
         <div className="mb-4">
           <h1 className="text-3xl font-serif mb-1">Barbería</h1>
-          <p className="text-[#C9A227]">Panel del dueño</p>
+          <p className="text-[#FFFFFF]">Panel del dueño</p>
         </div>
         <input
           name="usuario"
           placeholder="Usuario"
           autoComplete="username"
-          className="w-full bg-[#1C1917]/60 border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
+          className="w-full bg-[#1C1917]/60 border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#FFFFFF]"
         />
         <input
           name="password"
           type="password"
           placeholder="Contraseña"
           autoComplete="current-password"
-          className="w-full bg-[#1C1917]/60 border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#C9A227]"
+          className="w-full bg-[#1C1917]/60 border border-[#3A3530] rounded-md px-4 py-3 placeholder-[#8A8378] focus:outline-none focus:border-[#FFFFFF]"
         />
         {error && <p className="text-red-400 text-sm">Usuario o contraseña incorrectos.</p>}
         <button
           type="submit"
-          className="w-full bg-[#C9A227] text-[#1C1917] font-medium rounded-md py-3"
+          className="w-full bg-[#FFFFFF] text-[#1C1917] font-medium rounded-md py-3"
         >
           Entrar
         </button>
