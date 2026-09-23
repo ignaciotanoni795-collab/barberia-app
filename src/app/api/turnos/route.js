@@ -1,4 +1,6 @@
 import { sql } from '@/lib/db';
+import { horariosDisponibles } from '@/lib/disponibilidad';
+import { esFechaValida } from '@/lib/horarios';
 
 export async function POST(request) {
   const body = await request.json();
@@ -7,7 +9,7 @@ export async function POST(request) {
   if (
     !nombre_cliente ||
     !telefono_cliente ||
-    !fecha_hora ||
+    typeof fecha_hora !== 'string' ||
     !Array.isArray(servicios) ||
     servicios.length === 0
   ) {
@@ -24,34 +26,56 @@ export async function POST(request) {
 
   const duracionTotal = serviciosDb.reduce((acc, s) => acc + s.duracion_minutos, 0);
 
-  const { rows: solapados } = await sql`
-    SELECT t.id
-    FROM turnos t
-    JOIN turno_servicios ts ON ts.turno_id = t.id
-    JOIN servicios s ON s.id = ts.servicio_id
-    WHERE t.estado <> 'cancelado'
-    GROUP BY t.id, t.fecha_hora
-    HAVING t.fecha_hora < (${fecha_hora}::timestamp + (${duracionTotal}::text || ' minutes')::interval)
-       AND (t.fecha_hora + (SUM(s.duracion_minutos)::text || ' minutes')::interval) > ${fecha_hora}::timestamp
-  `;
-
-  if (solapados.length > 0) {
-    return Response.json({ error: 'Ese horario ya está ocupado. Elegí otro.' }, { status: 409 });
+  const [fecha, hora] = [fecha_hora.slice(0, 10), fecha_hora.slice(11, 16)];
+  if (!esFechaValida(fecha) || !/^\d{2}:\d{2}$/.test(hora)) {
+    return Response.json({ error: 'Fecha u hora inválida.' }, { status: 400 });
   }
 
-  const { rows: turnoRows } = await sql`
-    INSERT INTO turnos (nombre_cliente, telefono_cliente, fecha_hora)
-    VALUES (${nombre_cliente}, ${telefono_cliente}, ${fecha_hora})
-    RETURNING id
-  `;
+  // Revalida contra la misma lista que ve el cliente: horario de atención,
+  // turnos pasados y superposición con otros turnos.
+  const disponibles = await horariosDisponibles(fecha, duracionTotal);
+  if (!disponibles.includes(hora)) {
+    return Response.json({ error: 'Ese horario ya no está disponible. Elegí otro.' }, { status: 409 });
+  }
+
+  // El chequeo de arriba no alcanza si dos clientes confirman al mismo tiempo.
+  // Por eso la inserción se hace en una transacción con un lock por día: las
+  // reservas de una misma fecha se procesan de a una, y el INSERT solo ocurre
+  // si no hay superposición en ese momento.
+  const [, { rows: turnoRows }] = await sql.transaction([
+    sql`SELECT pg_advisory_xact_lock(hashtext(${fecha}))`,
+    sql`
+      WITH choque AS (
+        SELECT t.id
+        FROM turnos t
+        JOIN turno_servicios ts ON ts.turno_id = t.id
+        JOIN servicios s ON s.id = ts.servicio_id
+        WHERE t.estado <> 'cancelado'
+          AND t.fecha_hora::date = ${fecha}::date
+        GROUP BY t.id, t.fecha_hora
+        HAVING t.fecha_hora < ${fecha_hora}::timestamp + make_interval(mins => ${duracionTotal}::int)
+           AND t.fecha_hora + make_interval(mins => SUM(s.duracion_minutos)::int) > ${fecha_hora}::timestamp
+      ),
+      nuevo AS (
+        INSERT INTO turnos (nombre_cliente, telefono_cliente, fecha_hora)
+        SELECT ${nombre_cliente}, ${telefono_cliente}, ${fecha_hora}::timestamp
+        WHERE NOT EXISTS (SELECT 1 FROM choque)
+        RETURNING id
+      ),
+      detalle AS (
+        INSERT INTO turno_servicios (turno_id, servicio_id, precio_historico)
+        SELECT nuevo.id, s.id, s.precio
+        FROM nuevo, servicios s
+        WHERE s.id = ANY(${servicios})
+      )
+      SELECT id FROM nuevo
+    `,
+  ]);
+
+  if (turnoRows.length === 0) {
+    return Response.json({ error: 'Ese horario ya no está disponible. Elegí otro.' }, { status: 409 });
+  }
   const turnoId = turnoRows[0].id;
-
-  for (const s of serviciosDb) {
-    await sql`
-      INSERT INTO turno_servicios (turno_id, servicio_id, precio_historico)
-      VALUES (${turnoId}, ${s.id}, ${s.precio})
-    `;
-  }
 
   return Response.json({ id: turnoId }, { status: 201 });
 }
