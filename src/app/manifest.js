@@ -1,7 +1,7 @@
 export default function manifest() {
   return {
     name: 'Otto Barbería',
-    short_name: 'Otto',
+    short_name: 'Otto Barbería',
     description: 'Reservá tu turno en Otto Barbería',
     start_url: '/',
     display: 'standalone',
