@@ -20,8 +20,16 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "Barbería",
+  title: "Otto Barbería",
   description: "Reservá tu turno",
+  appleWebApp: {
+    title: "Otto Barbería",
+    statusBarStyle: "black-translucent",
+  },
+};
+
+export const viewport = {
+  themeColor: "#1C1917",
 };
 
 export default function RootLayout({ children }) {
