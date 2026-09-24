@@ -1,10 +1,21 @@
 import { sql } from '@/lib/db';
 import { horariosDisponibles } from '@/lib/disponibilidad';
 import { esFechaValida } from '@/lib/horarios';
+import { enviarPush } from '@/lib/push';
+
+function esSuscripcionValida(s) {
+  return (
+    s &&
+    typeof s.endpoint === 'string' &&
+    s.keys &&
+    typeof s.keys.p256dh === 'string' &&
+    typeof s.keys.auth === 'string'
+  );
+}
 
 export async function POST(request) {
   const body = await request.json();
-  const { nombre_cliente, telefono_cliente, fecha_hora, servicios, barbero_id } = body;
+  const { nombre_cliente, telefono_cliente, fecha_hora, servicios, barbero_id, push_subscription } = body;
 
   if (
     !nombre_cliente ||
@@ -26,7 +37,7 @@ export async function POST(request) {
   }
 
   const { rows: barberoDb } = await sql`
-    SELECT id FROM barberos WHERE id = ${barbero_id} AND activo
+    SELECT id, nombre FROM barberos WHERE id = ${barbero_id} AND activo
   `;
   if (barberoDb.length === 0) {
     return Response.json({ error: 'El barbero seleccionado no existe.' }, { status: 400 });
@@ -44,6 +55,19 @@ export async function POST(request) {
   const disponibles = await horariosDisponibles(fecha, duracionTotal, barbero_id);
   if (!disponibles.includes(hora)) {
     return Response.json({ error: 'Ese horario ya no está disponible. Elegí otro.' }, { status: 409 });
+  }
+
+  // Si el cliente aceptó notificaciones, guardamos (o actualizamos) su
+  // suscripción para poder avisarle la confirmación y el recordatorio.
+  let subscriptionId = null;
+  if (esSuscripcionValida(push_subscription)) {
+    const { rows: subRows } = await sql`
+      INSERT INTO push_subscriptions (endpoint, p256dh, auth)
+      VALUES (${push_subscription.endpoint}, ${push_subscription.keys.p256dh}, ${push_subscription.keys.auth})
+      ON CONFLICT (endpoint) DO UPDATE SET p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth
+      RETURNING id
+    `;
+    subscriptionId = subRows[0].id;
   }
 
   // El chequeo de arriba no alcanza si dos clientes confirman al mismo tiempo.
@@ -66,8 +90,8 @@ export async function POST(request) {
            AND t.fecha_hora + make_interval(mins => SUM(s.duracion_minutos)::int) > ${fecha_hora}::timestamp
       ),
       nuevo AS (
-        INSERT INTO turnos (nombre_cliente, telefono_cliente, fecha_hora, barbero_id)
-        SELECT ${nombre_cliente}, ${telefono_cliente}, ${fecha_hora}::timestamp, ${barbero_id}
+        INSERT INTO turnos (nombre_cliente, telefono_cliente, fecha_hora, barbero_id, push_subscription_id)
+        SELECT ${nombre_cliente}, ${telefono_cliente}, ${fecha_hora}::timestamp, ${barbero_id}, ${subscriptionId}
         WHERE NOT EXISTS (SELECT 1 FROM choque)
         RETURNING id
       ),
@@ -85,6 +109,18 @@ export async function POST(request) {
     return Response.json({ error: 'Ese horario ya no está disponible. Elegí otro.' }, { status: 409 });
   }
   const turnoId = turnoRows[0].id;
+
+  if (subscriptionId) {
+    const fechaFmt = `${fecha.slice(8, 10)}/${fecha.slice(5, 7)}/${fecha.slice(0, 4)}`;
+    await enviarPush(
+      { id: subscriptionId, endpoint: push_subscription.endpoint, ...push_subscription.keys },
+      {
+        title: '¡Turno confirmado!',
+        body: `${fechaFmt} a las ${hora} con ${barberoDb[0].nombre}.`,
+        url: '/',
+      }
+    );
+  }
 
   return Response.json({ id: turnoId }, { status: 201 });
 }

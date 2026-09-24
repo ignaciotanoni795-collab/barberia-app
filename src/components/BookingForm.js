@@ -17,6 +17,15 @@ function fechaLarga(fecha) {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+  for (let i = 0; i < rawData.length; i++) outputArray[i] = rawData.charCodeAt(i);
+  return outputArray;
+}
+
 export default function BookingForm({ servicios, barberos }) {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
@@ -29,6 +38,59 @@ export default function BookingForm({ servicios, barberos }) {
   const [confirmando, setConfirmando] = useState(false);
   const [resultado, setResultado] = useState({ clave: null, horarios: [] });
   const [recarga, setRecarga] = useState(0);
+  const [notifActiva, setNotifActiva] = useState(false);
+  const [notifCargando, setNotifCargando] = useState(false);
+  const [notifError, setNotifError] = useState('');
+  const [pushSub, setPushSub] = useState(null);
+
+  useEffect(() => {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => {
+        if (sub) {
+          setPushSub(sub.toJSON());
+          setNotifActiva(true);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  async function alternarNotificaciones(activar) {
+    if (!activar) {
+      setNotifActiva(false);
+      setPushSub(null);
+      return;
+    }
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      setNotifError('Tu navegador no soporta notificaciones push.');
+      return;
+    }
+
+    setNotifCargando(true);
+    setNotifError('');
+    try {
+      const reg = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY),
+        });
+      }
+      setPushSub(sub.toJSON());
+      setNotifActiva(true);
+    } catch (err) {
+      setNotifError('No pudimos activar las notificaciones. Revisá los permisos del navegador.');
+      setNotifActiva(false);
+    } finally {
+      setNotifCargando(false);
+    }
+  }
 
   const duracion = servicios
     .filter((s) => seleccionados.includes(s.id))
@@ -95,6 +157,7 @@ export default function BookingForm({ servicios, barberos }) {
           fecha_hora,
           servicios: seleccionados,
           barbero_id: barberoId,
+          push_subscription: pushSub,
         }),
       });
 
@@ -208,6 +271,22 @@ export default function BookingForm({ servicios, barberos }) {
             ))}
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="flex items-center gap-3 border border-[#3A3530] rounded-md px-4 py-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={notifActiva}
+            disabled={notifCargando}
+            onChange={(e) => alternarNotificaciones(e.target.checked)}
+            className="accent-[#FFFFFF] w-4 h-4"
+          />
+          <span className="text-sm">
+            Avisarme por notificación (confirmación y recordatorio del turno)
+          </span>
+        </label>
+        {notifError && <p className="text-red-400 text-sm mt-2">{notifError}</p>}
       </div>
 
       {mensaje && (

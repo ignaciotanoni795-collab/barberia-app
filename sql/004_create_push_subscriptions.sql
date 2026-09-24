@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS push_subscriptions (
+  id SERIAL PRIMARY KEY,
+  endpoint TEXT NOT NULL UNIQUE,
+  p256dh TEXT NOT NULL,
+  auth TEXT NOT NULL,
+  creado_en TIMESTAMP NOT NULL DEFAULT now()
+);
+
+ALTER TABLE turnos ADD COLUMN IF NOT EXISTS push_subscription_id INTEGER REFERENCES push_subscriptions(id) ON DELETE SET NULL;
+ALTER TABLE turnos ADD COLUMN IF NOT EXISTS recordatorio_enviado BOOLEAN NOT NULL DEFAULT false;
