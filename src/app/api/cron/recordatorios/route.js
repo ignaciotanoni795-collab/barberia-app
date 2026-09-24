@@ -2,19 +2,13 @@ import { sql } from '@/lib/db';
 import { enviarPush } from '@/lib/push';
 import { ahoraLocal } from '@/lib/horarios';
 
-function sumarDias(fechaStr, dias) {
-  const d = new Date(`${fechaStr}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + dias);
-  return d.toISOString().slice(0, 10);
-}
-
 export async function GET(request) {
   const auth = request.headers.get('authorization');
   if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response('Unauthorized', { status: 401 });
   }
 
-  const manana = sumarDias(ahoraLocal().fecha, 1);
+  const hoy = ahoraLocal().fecha;
 
   const { rows: turnos } = await sql`
     SELECT
@@ -30,7 +24,7 @@ export async function GET(request) {
     LEFT JOIN barberos b ON b.id = t.barbero_id
     WHERE t.estado <> 'cancelado'
       AND NOT t.recordatorio_enviado
-      AND t.fecha_hora::date = ${manana}::date
+      AND t.fecha_hora::date = ${hoy}::date
   `;
 
   let enviados = 0;
@@ -39,7 +33,7 @@ export async function GET(request) {
       { id: t.sub_id, endpoint: t.endpoint, p256dh: t.p256dh, auth: t.auth },
       {
         title: 'Recordatorio de turno',
-        body: `Mañana tenés turno a las ${t.hora}${t.barbero_nombre ? ` con ${t.barbero_nombre}` : ''}.`,
+        body: `Hoy tenés turno a las ${t.hora}${t.barbero_nombre ? ` con ${t.barbero_nombre}` : ''}.`,
         url: '/',
       }
     );
