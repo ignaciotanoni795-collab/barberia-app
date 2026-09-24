@@ -45,7 +45,7 @@ export default async function AdminDashboard({ searchParams }) {
   const finMes = finMesDate.toISOString().slice(0, 10);
   const diasEnMes = finMesDate.getUTCDate();
 
-  const [{ rows: kpiHoy }, { rows: kpiSemana }, { rows: diasMes }, { rows: mejoresDias }] = await Promise.all([
+  const [{ rows: kpiHoy }, { rows: kpiSemana }, { rows: diasMes }, { rows: mejoresDias }, { rows: porBarbero }] = await Promise.all([
     sql`
       SELECT COUNT(DISTINCT t.id) AS turnos, COALESCE(SUM(ts.precio_historico), 0) AS total
       FROM turnos t
@@ -71,6 +71,17 @@ export default async function AdminDashboard({ searchParams }) {
       JOIN turno_servicios ts ON ts.turno_id = t.id
       WHERE t.estado <> 'cancelado'
       GROUP BY 1
+      ORDER BY total DESC
+    `,
+    sql`
+      SELECT b.id, b.nombre, COUNT(DISTINCT t.id) AS turnos, COALESCE(SUM(ts.precio_historico), 0) AS total
+      FROM barberos b
+      LEFT JOIN turnos t ON t.barbero_id = b.id
+        AND t.estado <> 'cancelado'
+        AND t.fecha_hora::date BETWEEN ${inicioMes}::date AND ${finMes}::date
+      LEFT JOIN turno_servicios ts ON ts.turno_id = t.id
+      WHERE b.activo
+      GROUP BY b.id, b.nombre
       ORDER BY total DESC
     `,
   ]);
@@ -155,12 +166,31 @@ export default async function AdminDashboard({ searchParams }) {
         {mejoresDias.length === 0 ? (
           <p className="text-[#8A8378] text-sm">Todavía no hay datos suficientes.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 mb-10">
             {mejoresDias.map((d) => (
               <div key={d.dow} className="flex items-center justify-between border border-[#3A3530] rounded-md px-4 py-2">
                 <span>{DIAS[d.dow - 1]}</span>
                 <span className="text-sm text-[#8A8378]">{d.turnos} turno(s)</span>
                 <span className="text-[#FFFFFF]">{money(d.total)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-serif">Rendimiento por barbero</h2>
+          <a href="/admin/barberos" className="text-sm text-[#8A8378] hover:text-[#F5F1EA]">Ver detalle →</a>
+        </div>
+        <p className="text-xs text-[#8A8378] mb-3 capitalize">{nombreMes}</p>
+        {porBarbero.length === 0 ? (
+          <p className="text-[#8A8378] text-sm">Todavía no hay barberos cargados.</p>
+        ) : (
+          <div className="space-y-2">
+            {porBarbero.map((b) => (
+              <div key={b.id} className="flex items-center justify-between border border-[#3A3530] rounded-md px-4 py-2">
+                <span>{b.nombre}</span>
+                <span className="text-sm text-[#8A8378]">{b.turnos} turno(s)</span>
+                <span className="text-[#FFFFFF]">{money(b.total)}</span>
               </div>
             ))}
           </div>

@@ -1,8 +1,8 @@
 import { sql } from '@/lib/db';
 import { calcularDisponibles } from '@/lib/horarios';
 
-// Turnos no cancelados de `fecha`, como rangos { inicio, fin } en minutos del día.
-async function turnosOcupados(fecha) {
+// Turnos no cancelados de `fecha` para un barbero, como rangos { inicio, fin } en minutos del día.
+async function turnosOcupados(fecha, barberoId) {
   const { rows } = await sql`
     SELECT
       EXTRACT(HOUR FROM t.fecha_hora) * 60 + EXTRACT(MINUTE FROM t.fecha_hora) AS inicio,
@@ -12,6 +12,7 @@ async function turnosOcupados(fecha) {
     JOIN servicios s ON s.id = ts.servicio_id
     WHERE t.estado <> 'cancelado'
       AND t.fecha_hora::date = ${fecha}::date
+      AND t.barbero_id = ${barberoId}
     GROUP BY t.id
   `;
   return rows.map((r) => ({
@@ -20,6 +21,6 @@ async function turnosOcupados(fecha) {
   }));
 }
 
-export async function horariosDisponibles(fecha, duracion) {
-  return calcularDisponibles(fecha, duracion, await turnosOcupados(fecha));
+export async function horariosDisponibles(fecha, duracion, barberoId) {
+  return calcularDisponibles(fecha, duracion, await turnosOcupados(fecha, barberoId));
 }

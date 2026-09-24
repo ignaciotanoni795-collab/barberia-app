@@ -25,6 +25,7 @@ export default async function DiaPage({ params }) {
         t.telefono_cliente,
         to_char(t.fecha_hora, 'HH24:MI') AS hora,
         t.estado,
+        COALESCE(b.nombre, 'Sin asignar') AS barbero_nombre,
         json_agg(
           json_build_object('nombre', s.nombre)
           ORDER BY s.nombre
@@ -33,8 +34,9 @@ export default async function DiaPage({ params }) {
       FROM turnos t
       JOIN turno_servicios ts ON ts.turno_id = t.id
       JOIN servicios s ON s.id = ts.servicio_id
+      LEFT JOIN barberos b ON b.id = t.barbero_id
       WHERE t.fecha_hora::date = ${fecha}::date
-      GROUP BY t.id
+      GROUP BY t.id, b.nombre
       ORDER BY t.fecha_hora ASC
     `,
     sql`
@@ -97,6 +99,8 @@ export default async function DiaPage({ params }) {
                 </div>
                 <div className="text-sm text-[#8A8378] mt-1">
                   {t.telefono_cliente}
+                  {' · '}
+                  {t.barbero_nombre}
                   {' · '}
                   <span className={`capitalize ${ESTADO_COLOR[t.estado] ?? ''}`}>{t.estado}</span>
                 </div>

@@ -41,6 +41,28 @@ export async function cerrarDia(fecha) {
   revalidatePath('/admin', 'layout');
 }
 
+export async function crearBarbero(formData) {
+  const nombre = formData.get('nombre')?.trim();
+  if (!nombre) return;
+  await sql`INSERT INTO barberos (nombre) VALUES (${nombre})`;
+  revalidatePath('/admin/barberos');
+  revalidatePath('/');
+}
+
+export async function editarBarbero(id, formData) {
+  const nombre = formData.get('nombre')?.trim();
+  if (!nombre) return;
+  await sql`UPDATE barberos SET nombre = ${nombre} WHERE id = ${id}`;
+  revalidatePath('/admin/barberos');
+  revalidatePath('/');
+}
+
+export async function toggleBarberoActivo(id, activo) {
+  await sql`UPDATE barberos SET activo = ${!activo} WHERE id = ${id}`;
+  revalidatePath('/admin/barberos');
+  revalidatePath('/');
+}
+
 export async function login(formData) {
   const usuario = formData.get('usuario');
   const password = formData.get('password');

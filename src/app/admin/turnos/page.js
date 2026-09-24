@@ -18,6 +18,7 @@ export default async function TurnosPage() {
       t.telefono_cliente,
       to_char(t.fecha_hora, 'DD/MM/YYYY HH24:MI') AS fecha_hora_fmt,
       t.estado,
+      COALESCE(b.nombre, 'Sin asignar') AS barbero_nombre,
       json_agg(
         json_build_object('nombre', s.nombre, 'precio', ts.precio_historico)
         ORDER BY s.nombre
@@ -26,7 +27,8 @@ export default async function TurnosPage() {
     FROM turnos t
     JOIN turno_servicios ts ON ts.turno_id = t.id
     JOIN servicios s ON s.id = ts.servicio_id
-    GROUP BY t.id
+    LEFT JOIN barberos b ON b.id = t.barbero_id
+    GROUP BY t.id, b.nombre
     ORDER BY t.fecha_hora ASC
   `;
 
@@ -53,6 +55,8 @@ export default async function TurnosPage() {
                   {t.fecha_hora_fmt}
                   {' · '}
                   {t.telefono_cliente}
+                  {' · '}
+                  {t.barbero_nombre}
                   {' · '}
                   <span className={`capitalize ${ESTADO_COLOR[t.estado] ?? ''}`}>{t.estado}</span>
                 </div>

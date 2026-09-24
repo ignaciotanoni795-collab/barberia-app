@@ -17,9 +17,10 @@ function fechaLarga(fecha) {
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
-export default function BookingForm({ servicios }) {
+export default function BookingForm({ servicios, barberos }) {
   const [nombre, setNombre] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [barberoId, setBarberoId] = useState(null);
   const [fecha, setFecha] = useState('');
   const [hora, setHora] = useState('');
   const [seleccionados, setSeleccionados] = useState([]);
@@ -33,17 +34,17 @@ export default function BookingForm({ servicios }) {
     .filter((s) => seleccionados.includes(s.id))
     .reduce((acc, s) => acc + s.duracion_minutos, 0);
 
-  const clave = fecha && duracion > 0 ? `${fecha}|${duracion}|${recarga}` : null;
+  const clave = barberoId && fecha && duracion > 0 ? `${barberoId}|${fecha}|${duracion}|${recarga}` : null;
   const cargandoHorarios = clave !== null && resultado.clave !== clave;
   const horarios = clave !== null && resultado.clave === clave ? resultado.horarios : [];
-  // Si cambian los servicios o la fecha y la hora elegida ya no entra, se descarta.
+  // Si cambian los servicios, el barbero o la fecha y la hora elegida ya no entra, se descarta.
   const horaElegida = horarios.includes(hora) ? hora : '';
 
   useEffect(() => {
     if (clave === null) return;
 
     let cancelado = false;
-    fetch(`/api/turnos/disponibles?fecha=${fecha}&duracion=${duracion}`)
+    fetch(`/api/turnos/disponibles?fecha=${fecha}&duracion=${duracion}&barbero=${barberoId}`)
       .then((res) => res.json())
       .then((data) => {
         if (!cancelado) setResultado({ clave, horarios: data.horarios || [] });
@@ -54,10 +55,11 @@ export default function BookingForm({ servicios }) {
     return () => {
       cancelado = true;
     };
-  }, [clave, fecha, duracion]);
+  }, [clave, fecha, duracion, barberoId]);
 
   let placeholderHora = 'Elegí un horario';
   if (duracion === 0) placeholderHora = 'Elegí un servicio primero';
+  else if (!barberoId) placeholderHora = 'Elegí un barbero primero';
   else if (!fecha) placeholderHora = 'Elegí una fecha primero';
   else if (cargandoHorarios) placeholderHora = 'Buscando horarios...';
   else if (horarios.length === 0) placeholderHora = 'No hay horarios libres ese día';
@@ -72,7 +74,7 @@ export default function BookingForm({ servicios }) {
     e.preventDefault();
     setMensaje(null);
 
-    if (!nombre || !telefono || !fecha || !horaElegida || seleccionados.length === 0) {
+    if (!nombre || !telefono || !barberoId || !fecha || !horaElegida || seleccionados.length === 0) {
       setMensaje({ tipo: 'error', texto: 'Completá todos los campos y elegí al menos un servicio.' });
       return;
     }
@@ -92,6 +94,7 @@ export default function BookingForm({ servicios }) {
           telefono_cliente: telefono,
           fecha_hora,
           servicios: seleccionados,
+          barbero_id: barberoId,
         }),
       });
 
@@ -106,6 +109,7 @@ export default function BookingForm({ servicios }) {
       setMensaje({ tipo: 'ok', texto: '¡Turno reservado! Te esperamos.' });
       setNombre('');
       setTelefono('');
+      setBarberoId(null);
       setFecha('');
       setHora('');
       setSeleccionados([]);
@@ -157,6 +161,24 @@ export default function BookingForm({ servicios }) {
                 </span>
               </span>
             </label>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className="text-sm text-[#8A8378] mb-3">Barbero</p>
+        <div className="grid grid-cols-3 gap-2">
+          {barberos.map((b) => (
+            <button
+              key={b.id}
+              type="button"
+              onClick={() => setBarberoId(b.id)}
+              className={`border rounded-md px-3 py-3 text-sm text-center ${
+                barberoId === b.id ? 'border-[#FFFFFF]' : 'border-[#3A3530] text-[#8A8378]'
+              }`}
+            >
+              {b.nombre}
+            </button>
           ))}
         </div>
       </div>
@@ -215,6 +237,10 @@ export default function BookingForm({ servicios }) {
             </h2>
 
             <dl className="space-y-3 text-sm">
+              <div>
+                <dt className="text-[#8A8378]">Barbero</dt>
+                <dd className="text-base">{barberos.find((b) => b.id === barberoId)?.nombre}</dd>
+              </div>
               <div>
                 <dt className="text-[#8A8378]">Día y hora</dt>
                 <dd className="text-base">

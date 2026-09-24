@@ -9,6 +9,7 @@ export default function AdminNav({ current }) {
       <nav className="flex gap-4">
         <a href="/admin" className={linkClass('dashboard')}>Dashboard</a>
         <a href="/admin/turnos" className={linkClass('turnos')}>Turnos</a>
+        <a href="/admin/barberos" className={linkClass('barberos')}>Barberos</a>
       </nav>
       <form action={logout}>
         <button className="text-sm text-[#8A8378] hover:text-red-400">Cerrar sesión</button>
